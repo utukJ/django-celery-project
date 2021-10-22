@@ -11,7 +11,6 @@ from rest_framework.response import Response
 from rest_framework import generics, serializers, status
 from django.http import Http404
 from django.contrib.auth.models import User
-from django.template import Context, Template
 
 
 from . models import *
@@ -154,3 +153,8 @@ class ChatDetail(APIView):
         snippet = self.get_object(pk)
         snippet.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+
+
+

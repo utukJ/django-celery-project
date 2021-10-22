@@ -28,18 +28,24 @@ class Client(models.Model):
 
 
 class Conversation(models.Model):
+    ## conversation status choices
+    CHOICES = (("P", "PENDING"), ("R", "RESOLVED"))
+
     store = models.ForeignKey(Store, on_delete=models.CASCADE)
     client = models.ForeignKey(Client, on_delete=models.CASCADE)
     operator = models.ForeignKey(Operator, on_delete=models.CASCADE)
-    status = models.CharField(max_length=10, null=False, blank=False) ## MUST CHANGE TO CHOICE FIELD
+    status = models.CharField(max_length=10, null=False, blank=False, choices=CHOICES, default="P") ## MUST CHANGE TO CHOICE FIELD
 
 class Chat(models.Model):
+    ## chat status choices
+    CHOICES = (("N", "NEW"), ("S", "SENT"))
+
     conversation = models.ForeignKey(Conversation, related_name='chats', on_delete=models.CASCADE)
     payload = models.TextField()
     discount = models.ForeignKey(Discount, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     created_date = models.DateTimeField(auto_now_add=True)  ## NEED DATETIME FIELD
-    status = models.CharField(max_length=10) ## LOOK INTO THIS PLEASE!!
+    status = models.CharField(max_length=20, null=False, blank=False, choices=CHOICES, default="N") ## LOOK INTO THIS PLEASE!!
 
 
 class Schedule(models.Model):

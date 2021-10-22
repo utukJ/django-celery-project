@@ -1,6 +1,12 @@
 from communications.models import Chat, Client, Conversation, Discount, Operator, Schedule, Store
 from rest_framework import serializers
+from django.template import Context, Template
 
+
+
+def fill_in_context(template_string, context_dict):
+    """takes template string and returns the right value"""
+    return Template(template_string).render(Context(context_dict))
 
 class ChatSerializer(serializers.ModelSerializer):
     class Meta:
@@ -14,6 +20,20 @@ class ChatSerializer(serializers.ModelSerializer):
             'created_date',
             'status' 
             ]
+
+    def create(self, validated_data):
+        chat = Chat(**validated_data)
+        conversation = chat.conversation
+        operator = conversation.operator
+        client = conversation.client
+        store = conversation.store
+
+        chat.payload = fill_in_context(chat.payload, {
+            "operator": operator,
+            "client": client,
+            "store": store
+        })
+        return chat
 
 
 class ConversationSerializer(serializers.ModelSerializer):
@@ -58,3 +78,4 @@ class ScheduleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Schedule
         fields = ['id', 'chat', 'sending_date']
+
