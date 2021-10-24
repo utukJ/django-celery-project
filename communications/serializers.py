@@ -1,6 +1,8 @@
 from communications.models import Chat, Client, Conversation, Discount, Operator, Schedule, Store
 from rest_framework import serializers
 from django.template import Context, Template
+from .tasks import print_to_console, send_email_task
+import datetime
 
 
 
@@ -27,12 +29,15 @@ class ChatSerializer(serializers.ModelSerializer):
         operator = conversation.operator
         client = conversation.client
         store = conversation.store
+        discount = chat.discount
 
         chat.payload = fill_in_context(chat.payload, {
             "operator": operator,
             "client": client,
-            "store": store
+            "store": store,
+            "discount": discount
         })
+        chat.save()
         return chat
 
 
@@ -78,4 +83,17 @@ class ScheduleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Schedule
         fields = ['id', 'chat', 'sending_date']
+    
+    def create(self, validated_data):
+        sch = Schedule(**validated_data)
+        print("schedule model created...")
+        m_subject = "Conversation " + str(sch.chat.conversation.id)
+        msg = sch.chat.payload
+        to = [sch.chat.user.email]
+        sender = "utukphd@gmail.com"
+        print_to_console.apply_async((sch.chat.payload,), countdown=30)
+        send_email_task.apply_async((m_subject, msg, sender, to), countdown=60)
+        sch.save()
+        print("schedule model saved ...")
+        return sch
 

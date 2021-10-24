@@ -1,4 +1,5 @@
 from django.urls import path, include
+from communications.models import Schedule
 
 from communications.views import (
     ChatDetail, 
@@ -7,7 +8,8 @@ from communications.views import (
     ConversationDetail, 
     ConversationList, 
     DiscountList, 
-    OperatorList, 
+    OperatorList,
+    ScheduleList, 
     StoreList)
 
 urlpatterns = [
@@ -19,4 +21,5 @@ urlpatterns = [
     path('stores', StoreList.as_view(), name="store-list"),
     path('clients', ClientList.as_view(), name="client-list"),
     path('operators', OperatorList.as_view(), name="operator-list"),
+    path('schedules', ScheduleList.as_view(), name="schedule-list")
 ]

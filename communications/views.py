@@ -1,9 +1,11 @@
+from django.db.models.query import QuerySet
 from communications.serializers import (
     ChatSerializer, 
     ClientSerializer, 
     ConversationSerializer, 
     DiscountSerializer, 
-    OperatorSerializer, 
+    OperatorSerializer,
+    ScheduleSerializer, 
     StoreSerializer
 )
 from rest_framework.views import APIView
@@ -155,6 +157,6 @@ class ChatDetail(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-
-
-
+class ScheduleList(generics.ListCreateAPIView):
+    queryset = Schedule.objects.all()
+    serializer_class = ScheduleSerializer
