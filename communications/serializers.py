@@ -3,12 +3,14 @@ from rest_framework import serializers
 from django.template import Context, Template
 from .tasks import print_to_console, send_email_task
 import datetime
-
+import string
 
 
 def fill_in_context(template_string, context_dict):
     """takes template string and returns the right value"""
     return Template(template_string).render(Context(context_dict))
+
+
 
 class ChatSerializer(serializers.ModelSerializer):
     class Meta:
@@ -39,6 +41,20 @@ class ChatSerializer(serializers.ModelSerializer):
         })
         chat.save()
         return chat
+
+    def validate_payload(self, chat_payload):
+        """
+        ensures that we have no more than 300 characters 
+        and allowed characters ===>   *aA-zZ1234567890{}$%_-\\/~@#$%^&*()!?
+        """
+        if len(chat_payload) > 300:
+            raise serializers.ValidationError("character limit exceeded")
+        allowed_characters = " *1234567890{}$%_-\\/~@#$%^&*()!?\r\n" + string.ascii_lowercase
+        l_chat_payload = chat_payload.lower()
+        for chr in l_chat_payload:
+            if chr not in allowed_characters:
+                raise serializers.ValidationError(f"character not allowed: '{chr}'")
+        return chat_payload
 
 
 class ConversationSerializer(serializers.ModelSerializer):

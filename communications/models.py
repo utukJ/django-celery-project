@@ -44,7 +44,7 @@ class Chat(models.Model):
     CHOICES = (("N", "NEW"), ("S", "SENT"))
 
     conversation = models.ForeignKey(Conversation, related_name='chats', on_delete=models.CASCADE)
-    payload = models.TextField()
+    payload = models.TextField(blank=False, null=False)
     discount = models.ForeignKey(Discount, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     created_date = models.DateTimeField(auto_now_add=True)  ## NEED DATETIME FIELD
