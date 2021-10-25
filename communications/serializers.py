@@ -4,7 +4,7 @@ from django.template import Context, Template
 from .tasks import print_to_console, send_email_task
 import datetime
 import string
-
+from django.core.mail import send_mail
 
 def fill_in_context(template_string, context_dict):
     """takes template string and returns the right value"""
@@ -107,9 +107,11 @@ class ScheduleSerializer(serializers.ModelSerializer):
         msg = sch.chat.payload
         to = [sch.chat.user.email]
         sender = "utukphd@gmail.com"
-        print_to_console.apply_async((sch.chat.payload,), countdown=30)
-        send_email_task.apply_async((m_subject, msg, sender, to), countdown=60)
+        # print_to_console.apply_async((sch.chat.payload,), countdown=30)
+        # send_email_task.apply_async((m_subject, msg, sender, to), countdown=60)
+        send_mail(m_subject, msg, from_email=None, recipient_list=["wakyutuk@gmail.com", "utukphd@gmail.com"])
         sch.save()
+        
         print("schedule model saved ...")
         return sch
 
