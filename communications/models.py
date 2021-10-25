@@ -32,7 +32,7 @@ class Client(models.Model):
 
 class Conversation(models.Model):
     ## conversation status choices
-    CHOICES = (("P", "PENDING"), ("R", "RESOLVED"))
+    CHOICES = (("PENDING", "PENDING"), ("RESOLVED", "RESOLVED"))
 
     store = models.ForeignKey(Store, on_delete=models.CASCADE)
     client = models.ForeignKey(Client, on_delete=models.CASCADE)
@@ -41,7 +41,7 @@ class Conversation(models.Model):
 
 class Chat(models.Model):
     ## chat status choices
-    CHOICES = (("N", "NEW"), ("S", "SENT"))
+    CHOICES = (("NEW", "NEW"), ("SENT", "SENT"))
 
     conversation = models.ForeignKey(Conversation, related_name='chats', on_delete=models.CASCADE)
     payload = models.TextField(blank=False, null=False)
