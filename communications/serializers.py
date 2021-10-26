@@ -5,6 +5,8 @@ from .tasks import print_to_console, send_email_task
 import datetime
 import string
 from django.core.mail import send_mail
+from django.utils import timezone
+import pytz
 
 def fill_in_context(template_string, context_dict):
     """takes template string and returns the right value"""
@@ -39,6 +41,9 @@ class ChatSerializer(serializers.ModelSerializer):
             "store": store,
             "discount": discount
         })
+
+        ## create new schedule with every new chat message
+        schedule = Schedule()
         chat.save()
         return chat
 
@@ -102,16 +107,54 @@ class ScheduleSerializer(serializers.ModelSerializer):
     
     def create(self, validated_data):
         sch = Schedule(**validated_data)
-        print("schedule model created...")
+
         m_subject = "Conversation " + str(sch.chat.conversation.id)
         msg = sch.chat.payload
         to = [sch.chat.user.email]
-        sender = "utukphd@gmail.com"
-        # print_to_console.apply_async((sch.chat.payload,), countdown=30)
-        # send_email_task.apply_async((m_subject, msg, sender, to), countdown=60)
-        send_mail(m_subject, msg, from_email=None, recipient_list=["wakyutuk@gmail.com", "utukphd@gmail.com"])
+
+        # tz = sch.chat.conversation.store.timezone
+        # timezone.activate(tz)
+        time_diff = sch.sending_date - timezone.now()
+        print("time diff: ", time_diff.seconds)
+
+        send_email_task.apply_async(
+            (m_subject, msg, None, [sch.chat.user.email], sch.chat.id), 
+            countdown=time_diff.seconds
+            )
         sch.save()
         
         print("schedule model saved ...")
         return sch
+
+        
+    def validate_sending_date(self, sending_date):
+        if sending_date < timezone.now():
+            raise serializers.ValidationError("cannot schedule to past time")
+        return sending_date
+
+
+    def validate(self, data):
+        ## try to get user timezone
+        chat = data["chat"]
+        sending_date = data["sending_date"]
+        try:
+            tz = chat.user.timezone
+        ## fall back to store timezone
+        except AttributeError:
+            tz = chat.conversation.store.timezone
+        
+        realtime = sending_date.astimezone(pytz.timezone(tz))
+        print("realtime: ", realtime)
+        late = datetime.time(hour=20)
+        early = datetime.time(hour=9)
+        print("realtime.time: ", realtime.time(), type(realtime.time()))
+        print("late: ", late, type(late))
+        print("early: ", early, type(early))
+        if realtime.time() > late or realtime.time() < early:
+            raise serializers.ValidationError("schedule time after 20:00 or before 09:00 not allowed")
+        return data
+
+            
+
+                
 
